@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation Form</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background-color: #f4f4f9; }
+        form { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-geo { background-color: #6c757d; color: white; }
+        .btn-submit { background-color: #007bff; color: white; }
+        .btn-submit:disabled { background-color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <form id="locationForm">
+        <h3>Submit Location</h3>
+        <input name="Name" type="text" placeholder="Full Name" required>
+        <input name="ID" type="number" placeholder="Employee/User ID" required>
+        <input name="Group" type="text" placeholder="Group/Department" required>
+
+        <input type="text" id="lat" name="Latitude" placeholder="Latitude (Click Get Location)" readonly required>
+        <input type="text" id="lon" name="Longitude" placeholder="Longitude (Click Get Location)" readonly required>
+
+        <button type="button" class="btn-geo" onclick="getLocation()">1. Get Current Location</button>
+        <button type="submit" id="submitBtn" class="btn-submit">2. Send Data</button>
+    </form>
+
+    <script>
+        // REPLACE THIS WITH YOUR DEPLOYED WEB APP URL
+        const scriptURL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+        const form = document.getElementById('locationForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    document.getElementById("lat").value = position.coords.latitude;
+                    document.getElementById("lon").value = position.coords.longitude;
+                    alert("Coordinates Captured!");
+                }, (error) => {
+                    alert("Error: " + error.message + ". Please enable GPS.");
+                });
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "Sending...";
+
+            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+                .then(response => {
+                    alert('Success! Row added to sheet.');
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = "2. Send Data";
+                })
+                .catch(error => {
+                    alert('Error! Check console for details.');
+                    console.error('Error!', error.message);
+                    submitBtn.disabled = false;
+                });
+        });
+    </script>
+</body>
+</html>
