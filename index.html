@@ -30,44 +30,52 @@
     </form>
 
     <script>
-        // REPLACE THIS WITH YOUR DEPLOYED WEB APP URL
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyjR1EaZ4eqLEIMMnQxwQUxAocz4F2vV0oLjY1WTgtoWlirA9AP0rg-XLXVdC--KLtvqw/exec';
-        const form = document.getElementById('locationForm');
-        const submitBtn = document.getElementById('submitBtn');
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbwhGmMLiUoolLj1um-I6SBsVOzk3RZfe6gmap-Fr2fVtjRSyvW79OpJaNaCNLsdJuQEHg/exec';
+  const form = document.getElementById('locationForm');
+  const submitBtn = document.getElementById('submitBtn');
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    document.getElementById("lat").value = position.coords.latitude;
-                    document.getElementById("lon").value = position.coords.longitude;
-                    alert("Coordinates Captured!");
-                }, (error) => {
-                    alert("Error: " + error.message + ". Please enable GPS.");
-                });
-            } else {
-                alert("Geolocation is not supported by your browser.");
-            }
+  function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        // Ensure these IDs match your input field IDs
+        document.getElementById("lat").value = position.coords.latitude;
+        document.getElementById("lon").value = position.coords.longitude;
+        alert("Location captured successfully!");
+      }, (error) => {
+        alert("GPS Error: " + error.message);
+      });
+    } else {
+      alert("Geolocation not supported.");
+    }
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Sending to Google...";
+
+    // FormData gathers all inputs with a "name" attribute
+    fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+      .then(response => response.json())
+      .then(data => {
+        if(data.result === 'success') {
+          alert('Success! Data recorded in row ' + data.row);
+          form.reset();
+        } else {
+          alert('Error: ' + data.error);
         }
-
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = "Sending...";
-
-            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => {
-                    alert('Success! Row added to sheet.');
-                    form.reset();
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = "2. Send Data";
-                })
-                .catch(error => {
-                    alert('Error! Check console for details.');
-                    console.error('Error!', error.message);
-                    submitBtn.disabled = false;
-                });
-        });
-    </script>
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "2. Send Data";
+      })
+      .catch(error => {
+        console.error('Submission Error!', error.message);
+        alert('Failed to connect to Google Script. Check your Web App URL.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "2. Send Data";
+      });
+  });
+</script>
 </body>
 
 </html>
+
